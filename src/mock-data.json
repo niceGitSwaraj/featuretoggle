@@ -1,0 +1,10 @@
+[
+  {
+      "uid": "release-CXPM-coach-the-coach-CXPM-2815",
+      "description": "Adding coaching flavor as coach the coach",
+      "owner": "Vishakha Bhope",
+      "offFor": "*",
+      "onFor": "perm_cxpm_dev_1",
+      "release": "23.1"
+  }
+]
