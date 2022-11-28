@@ -38,7 +38,7 @@ const Home = () => {
         {headers: {
                 "Access-Control-Allow-Origin" : "*",
                 "content-type": "text/plain",
-                "Authorization": `Bearer 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`,
+                "Authorization": `Bearer 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`,
                 "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT"
                 }   
         }

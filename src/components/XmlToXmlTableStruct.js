@@ -5,7 +5,7 @@ import $ from 'jquery';
  
 let realRepoName = [];
 //let rowColor;
-
+let targetRow;
 const XmlToXmlTableStruct = ({ contact,headings }) => {
   
   for(var i=0;i<headings.length;i++){ 
@@ -47,6 +47,9 @@ const XmlToXmlTableStruct = ({ contact,headings }) => {
   let ownerMismatch = false;
   let dependenciesMismatch = false;
   let releaseMismatch = false;
+  let rowColor;
+  let rowName;
+  
  //the extra td is because of the comma at the end....
 
 
@@ -54,10 +57,19 @@ const XmlToXmlTableStruct = ({ contact,headings }) => {
   //setTableHeadings("Dev"); 
   if(objectName[0].trim() != tableColumn.trim()){ //we only need to compare the first element with the rest of them
    // setUIDRowColor("red"); 
+   if(realRepoName.length>1){
+     
+      if(targetRow !== rowName){
+        rowColor = "red";
+        rowName = targetRow; 
+        console.log(rowName+" - "+rowColor+" "+realRepoName.length);
+      }      
+    }   
     return "red";
   }  
   //uidRowColor = "#0ec74f";
   //setUIDRowColor("#0ec74f");
+  rowColor = "#0ec74f";
   return '';
 };
 
@@ -100,12 +112,24 @@ const expandRow = () => {
     console.log(target.hasClass('in'));
   });
 }
-let targetRow = uid;
+targetRow = uid;
 targetRow = targetRow.includes(',')?targetRow.substring(0, targetRow.indexOf(',')):targetRow;  
 targetRow = targetRow[0];    
 let targetRowID = "#"+targetRow;
 
-   console.log(targetRow);
+const getRowColor = (objectName,tableColumn) => { 
+  //setTableHeadings("Dev"); 
+   //we only need to compare the first element with the rest of them
+   // setUIDRowColor("red"); 
+   if(realRepoName.length>1){
+      if(objectName !== rowName){
+        rowColor = "red";
+        rowName = objectName; 
+        console.log(rowName+" - "+rowColor+" "+realRepoName.length);
+      }   
+  }
+}
+   //console.log(targetRow);
   return (    
     <>
     <button type="button" class="btn" data-toggle="myCollapse" data-target={targetRowID} onClick={expandRow} style={{background : "#0ec74f" }}>

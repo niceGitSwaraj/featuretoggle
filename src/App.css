@@ -101,6 +101,11 @@ label {
   width: 100%;
 }
 
+#loginBtn {
+  width: 200px;
+  margin: 150px;
+}
+
 .example-header {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   font-size: 13px;
@@ -139,3 +144,4 @@ label {
 .myCollapse.in {
 display: block;
 }
+

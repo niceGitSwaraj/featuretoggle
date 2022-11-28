@@ -20,11 +20,16 @@ let historicalReleaseFiles = [];
 let releasesCounter=0;
 var xml;
 const parser = new DOMParser();
+const bearerToken = process.env.REACT_APP_BEARER_TOKEN;
 
 
-
-function XmlToXml() { 
-
+function XmlToXml(props) {  
+  console.log(props.funcUser);
+  console.log(bearerToken);
+  if(!localStorage.getItem("user")){
+    console.log(localStorage.getItem("user"));
+    window.location.assign("http://localhost:3000/Login")
+  }
   const [regionOne, setRegionOne] = useState("https://raw.githubusercontent.com/nice-cxone/dev-feature-toggles/master/toggles.xml");
   const [regionTwo, setRegionTwo] = useState("https://raw.githubusercontent.com/nice-cxone/dev-feature-toggles/master/toggles.xml");
   const [uids, setUIDS] = useState([]);
@@ -38,7 +43,9 @@ function XmlToXml() {
   const [historicalReleaseNumbers, setHistoricalReleaseNumbers] = useState([]);
   const [masterDataArray, setMasterData] = useState([]);
   var UIDS = [];
-  
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  let accessToken = urlParams.get("code");
 
   useEffect(() => {
     displayTables()
@@ -56,7 +63,7 @@ function XmlToXml() {
           {headers: {
                   "Access-Control-Allow-Origin" : "*",
                   "content-type": "text/plain",
-                  "Authorization": `Bearer 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`,
+                  "Authorization": `Bearer `+bearerToken,
                   "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT"
                   }   
           }
@@ -87,10 +94,7 @@ function XmlToXml() {
           
         });
          
-  }
-  
-
- 
+  } 
   }
 
   const getHistoricalHashes = (box) => {    
@@ -106,7 +110,7 @@ function XmlToXml() {
         {headers: {
                 "Access-Control-Allow-Origin" : "*",
                 "content-type": "text/plain",
-                "Authorization": `Bearer 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`,
+                "Authorization": `Bearer `+bearerToken,
                 "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT"
                 }   
         }
@@ -152,7 +156,7 @@ function XmlToXml() {
         {headers: {
                 "Access-Control-Allow-Origin" : "*",
                 "content-type": "text/plain",
-                "Authorization": `Bearer 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`,
+                "Authorization": `Bearer `+bearerToken,
                 "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT"
                 }   
         }
@@ -221,7 +225,7 @@ function XmlToXml() {
           {headers: {
                   "Access-Control-Allow-Origin" : "*",
                   "content-type": "text/plain",
-                  "Authorization": `Bearer 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`,
+                  "Authorization": "Bearer "+bearerToken,//+accessToken
                   "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT"
                   }   
           }
@@ -230,7 +234,7 @@ function XmlToXml() {
 
     Promise.all(promises).then((response) => {  
           jsonDataMaster = [];//this is very inefficient. try to append new array by checking previous key so reinsertion doesnt happen.
-          console.log(promises);
+          //console.log(promises);
           //console.log(response[0].data);
           for(let j=0;j<response.length;j++){             
           xml = parser.parseFromString(response[j].data, 'text/xml');    
@@ -244,7 +248,8 @@ function XmlToXml() {
                   var onFor  = parser.parseFromString(xml.getElementsByTagName("flipstrategy")[i]?xml.getElementsByTagName("flipstrategy")[i].childNodes[0].parentNode.childNodes[3].outerHTML:"could not retreive", 'text/xml');
                   onFor = onFor.firstChild.hasAttribute("value")?onFor.firstChild.getAttribute("value"):"could not retreive";
                   let uid = xml.getElementsByTagName("feature")[i].hasAttribute("uid")?xml.getElementsByTagName("feature")[i].getAttribute("uid"):"could not retreive";
-                  //console.log(i);
+                 // console.log(xml.getElementsByTagName("flipstrategy")[i].childNodes[0].parentNode.childNodes[1].outerHTML.value);
+                 // console.log(offFor);
                   var temp = {
                     "uid" : uid,
                     "description" : xml.getElementsByTagName("feature")[i].getAttribute("description"),
@@ -508,52 +513,8 @@ const handleChange = (checkbox,repo,repoRealName) => {
         <div class="row align-items-center my-5">
         
             
-            <div>
-            <select value={regionOne} onChange={(event) => {setRegionOne(event.target.value);getXMLData({regionOne}.regionOne,"Master",event.nativeEvent.target[event.nativeEvent.target.selectedIndex].text);}}>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/dev-feature-toggles/master/toggles.xml'}>Dev</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/perf-feature-toggles/master/toggles.xml'}>Perf</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-na1-feature-toggles/master/toggles.xml'}>Production NA1</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-na2-feature-toggles/master/toggles.xml'}>FedRamp NA2</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-eu1-feature-toggles/master/toggles.xml'}>Europe</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-au1-feature-toggles/master/toggles.xml'}>Australia</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-uk1-feature-toggles/master/toggles.xml'}>London</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-ca1-feature-toggles/master/toggles.xml'}>Canada</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-jp1-feature-toggles/master/toggles.xml'}>Japan</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-na3-feature-toggles/master/toggles.xml'}>FedRAMP High</option>
-            </select>
-            <p>Master URL: {regionOne}</p>
-            <select value={regionTwo} onChange={(event) => {setRegionTwo(event.target.value);getXMLData({regionTwo}.regionTwo,"Slave",event.nativeEvent.target[event.nativeEvent.target.selectedIndex].text)}}>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/dev-feature-toggles/master/toggles.xml'}>Dev</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/perf-feature-toggles/master/toggles.xml'}>Perf</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-na1-feature-toggles/master/toggles.xml'}>Production NA1</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-na2-feature-toggles/master/toggles.xml'}>FedRamp NA2</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-eu1-feature-toggles/master/toggles.xml'}>Europe</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-au1-feature-toggles/master/toggles.xml'}>Australia</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-uk1-feature-toggles/master/toggles.xml'}>London</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-ca1-feature-toggles/master/toggles.xml'}>Canada</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-jp1-feature-toggles/master/toggles.xml'}>Japan</option>
-                <option value={'https://raw.githubusercontent.com/nice-cxone/prod-na3-feature-toggles/master/toggles.xml'}>FedRAMP High</option>
-            </select>
-            <p>Slave URL: {regionTwo}</p>            
-            
-            <select value={selectedUID} onChange={(event) => {setSelectedUID(event.target.value);displayTableData(event.target.value,false);}}>
-            {uids.map(item => {
-                 //console.log(item);
-                return (<option value={item}>{item}</option>);
-            })}
-            
-          </select>
-          <p>Selected Feature: {selectedUID}</p>    
-
-          <select value={selectedRelease} onChange={(event) => {setSelectedRelese(event.target.value)}}>
-            {historicalReleaseNumbers.map(item => {
-                 //console.log(item);
-                return (<option value={item}>{item}</option>);
-            })}           
-          </select>
-
-          <p>Selected Release: {selectedRelease}</p>
-
+          <div>
+        
           <label>Compare All</label><input type="checkbox" id="compareAll" name="compareAll" onChange={() => {displayTableData(uids,true);}}/>
           <label>DEV </label><input type="checkbox" id="devCheckbox" name="devCheckbox" onChange={(event) => {handleChange(event.target.checked,"dev-feature-toggles","DEV")}}/>
           <label>Perf </label><input type="checkbox" id="perfCheckbox" name="perfCheckbox" onChange={(event) => {handleChange(event.target.checked,"perf-feature-toggles","Perf")}}/>

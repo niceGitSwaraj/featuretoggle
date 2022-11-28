@@ -1,6 +1,14 @@
 import React from "react";
 
-function ConfigMgrToConfigMgr() {
+function ConfigMgrToConfigMgr(props) {
+  /*if(!props.funcUser){
+    console.log(props.funcUser);
+    window.location.assign("http://localhost:3000/Login")
+  }*/
+  if(!localStorage.getItem("user")){
+    console.log(localStorage.getItem("user"));
+    window.location.assign("http://localhost:3000/Login")
+  }
   return (
     <div className="contact">
       <div class="container">
