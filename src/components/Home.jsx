@@ -13,7 +13,7 @@ import axios from 'axios';
 let jsonData = [];
 var xml;
 const parser = new DOMParser();
-
+const bearerToken = process.env.REACT_APP_BEARER_TOKEN;
 
 
 
@@ -38,7 +38,7 @@ const Home = () => {
         {headers: {
                 "Access-Control-Allow-Origin" : "*",
                 "content-type": "text/plain",
-                "Authorization": `Bearer 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`,
+                "Authorization": `Bearer `+bearerToken,
                 "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT"
                 }   
         }

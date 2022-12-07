@@ -13,8 +13,9 @@ import { useLocation } from 'react-router-dom'
 
 const App = () => {  
   
-  const CLIENT_ID = "935f571cf46ad93a75b4"
-  const CLIENT_SECRET = "b8529168a351aad84adaebd82ff4da61b635d8e8"
+  //const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
+ // const CLIENT_SECRET = process.env.REACT_APP_CLIENT_SECRET;
+  //const bearerToken = process.env.REACT_APP_BEARER_TOKEN;
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);
   let codeParams = urlParams.get("code");
@@ -22,82 +23,50 @@ const App = () => {
   const [showNav, setShowNav] = useState(true);
   const [user,setUser] = useState("");
   //localStorage.setItem("kickedBack",false);
-  //const location = useLocation();
-  console.log("dasd??");
-  const bearerToken = process.env.REACT_APP_BEARER_TOKEN;
+  //const location = useLocation(); 
+  //console.log(bearerToken); 
+  //console.log(CLIENT_ID);
+  //console.log(CLIENT_SECRET);
   //console.log(bearerToken);
   
   useEffect(() => {
-   
-      async function getAccessToken(){    
-            const params = "https://github.com/login/oauth/access_token?client_id=" + 
-            CLIENT_ID + "&client_secret=" + CLIENT_SECRET +"&code=" + codeParams;
-            const settings = {
-              method: 'POST',       
-              headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',          
-              }
-            }    
-            const response = await fetch(params, settings);
-            if (!response.ok) throw Error(response.message);
-          
-            try {
-              const data = await response.json();
-              console.log(data);
-              return data;
-            } catch (err) {
-              throw err;
-            }
-      };
-    //  console.log( window.location.pathname);      
-      async function getUser(accessToken){   
-            const usersEndpoint = "https://api.github.com/user";
-            const settings = {
-              method: 'GET',       
-              headers: {
-                "Authorization" : "Bearer "+accessToken
-              }
-            }    
-            const response = await fetch(usersEndpoint, settings);
-            if (!response.ok) {
-              window.location.assign("http://localhost:3000/Login")
-            }
-          
-            try {
-              const data = await response.json();
-              return data;
-            } catch (err) {
-              throw err;
-            }
-      };
-
-      async function getToken(){
-        const token = await getAccessToken();                       
-          if(token.access_token){
-            localStorage.setItem("access_token",token.access_token);
+    
+    if(codeParams && localStorage.getItem("access_token") === null){
+      async function getAccessToken(){
+        console.log("here codeParams: "+codeParams);        
+        await fetch("http://localhost:4000/getAccessToken?code="+codeParams,{
+          method: "GET"
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+          console.log(data);
+          if(data.access_token){
+            localStorage.setItem("access_token",data.access_token);
             setRerender(!rerender);
-          }         
-          return localStorage.getItem("access_token");
+          }
+        })
       }
-
-      async function getUserData(){
-        let token = await getToken();
-        const loggedInUser = await getUser(token);
-        if(!loggedInUser.login){
-          window.location.assign("http://localhost:3000/Login")
-        }
-        console.log(loggedInUser.login); 
-        localStorage.setItem("user",loggedInUser.login);            
-        setUser(loggedInUser.login);
-      }
-      if(codeParams && localStorage.getItem("access_token") === null){
-        console.log("ok?");     
-        getUserData();
-      } 
-
+      getAccessToken();
+    }    
   },[]);
 
+  async function getUserData(){
+    //console.log(localStorage.getItem("access_token"))
+    await fetch ("http://localhost:4000/getUserData",{
+      method: "GET",
+      headers: {
+        "Authorization" : "Bearer "+localStorage.getItem("access_token")
+      }
+    }).then((response) => {
+      return response.json();
+    }).then((data) => {
+      localStorage.setItem("user", data.login);
+      //console.log(data);      
+    })       
+ }
+ if(localStorage.getItem("access_token")){
+      getUserData();
+ }
  
   return (
 

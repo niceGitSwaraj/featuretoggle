@@ -20,12 +20,12 @@ let historicalReleaseFiles = [];
 let releasesCounter=0;
 var xml;
 const parser = new DOMParser();
-const bearerToken = process.env.REACT_APP_BEARER_TOKEN;
+let bearerToken;// = process.env.REACT_APP_BEARER_TOKEN;
 
 
 function XmlToXml(props) {  
   console.log(props.funcUser);
-  console.log(bearerToken);
+  //console.log(bearerToken);
   if(!localStorage.getItem("user")){
     console.log(localStorage.getItem("user"));
     window.location.assign("http://localhost:3000/Login")
@@ -42,18 +42,35 @@ function XmlToXml(props) {
   //const [historicalReleaseFiles, sethistoricalReleaseFiles] = useState([]);  
   const [historicalReleaseNumbers, setHistoricalReleaseNumbers] = useState([]);
   const [masterDataArray, setMasterData] = useState([]);
+  const [bearerTokenServer,setBearerToken] = useState("");
   var UIDS = [];
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);
   let accessToken = urlParams.get("code");
 
+
+ 
+
   useEffect(() => {
+   // function getBearerTokenFromServer(){     
+      fetch("http://localhost:4000/getBearerToken",{
+       method: "GET"
+     }).then((response) => {
+         return response.json()       
+     }).then((data) => {       
+       bearerToken = data;
+       return data;     
+     })    
+  // }
+  
     displayTables()
   },[masterDataArray]);
 
-
   
-  async function getHistoricalReleases(commitHash,repo) {
+  
+  
+  
+  async function getHistoricalReleases(commitHash,repo) {    
     let temp = [];
     releasesCounter=0;
     console.log("called!!!");
@@ -134,102 +151,33 @@ function XmlToXml(props) {
   }
 
   //getHistoricalHashes("Master");
-
-  const getXMLData = (selectedRegion,box,repoName) => {
-    console.log("getXMLData called: "+ selectedRegion);
-    console.log("box: "+box);
-    console.log("repoName: "+repoName);
-    if(box=="Master"){      
-      jsonDataMaster = [];     
-      setRegionOneName(repoName);                   
-    }
-    else if(box=="Slave"){      
-      jsonDataSlave = [];
-      setRegionTwoName(repoName);
-    }
-    
-    /*if(!selectedRegion){
-      selectedRegion = 'https://raw.githubusercontent.com/nice-cxone/dev-feature-toggles/master/toggles.xml';
-    }*/
-      axios.get(
-        selectedRegion,//'https://raw.githubusercontent.com/nice-cxone/dev-feature-toggles/master/toggles.xml',
-        {headers: {
-                "Access-Control-Allow-Origin" : "*",
-                "content-type": "text/plain",
-                "Authorization": `Bearer `+bearerToken,
-                "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT"
-                }   
-        }
-      )
-      .then((response) => {       
-        console.log("getXMLData called 2: "+ selectedRegion);        
-        xml = parser.parseFromString(response.data, 'text/xml');    
-        console.log(xml);  
-              for ( var i = 0; i < xml.getElementsByTagName("feature").length ; i++ ){                   
-                var offFor = parser.parseFromString(xml.getElementsByTagName("flipstrategy")[i]?xml.getElementsByTagName("flipstrategy")[i].childNodes[0].parentNode.childNodes[1].outerHTML:"could not retreive", 'text/xml');
-                offFor = offFor.firstChild.hasAttribute("value")?offFor.firstChild.getAttribute("value"):"could not retreive";
-                var onFor  = parser.parseFromString(xml.getElementsByTagName("flipstrategy")[i]?xml.getElementsByTagName("flipstrategy")[i].childNodes[0].parentNode.childNodes[3].outerHTML:"could not retreive", 'text/xml');
-                onFor = onFor.firstChild.hasAttribute("value")?onFor.firstChild.getAttribute("value"):"could not retreive";
-                
-                //console.log(i);
-                var jsonObject = {
-                  "uid" : xml.getElementsByTagName("feature")[i].hasAttribute("uid")?xml.getElementsByTagName("feature")[i].getAttribute("uid"):"could not retreive",
-                  "description" : xml.getElementsByTagName("feature")[i].getAttribute("description"),
-                  "owner" : xml.getElementsByTagName("owner")[i]?xml.getElementsByTagName("owner")[i].innerHTML:"could not retreive",
-                  "offFor" : offFor,
-                  "onFor" : onFor,
-                  "dependencies" : xml.getElementsByTagName("documentation")[i]?xml.getElementsByTagName("documentation")[i].childNodes[0].parentNode.childNodes[4].innerHTML:"could not retreive",
-                  "release" : xml.getElementsByTagName("documentation")[i]?xml.getElementsByTagName("documentation")[i].childNodes[0].parentNode.childNodes[1].innerHTML:"could not retreive",
-                };
-
-                //console.log(jsonObject);
-                if(box=="Master"){
-                 // console.log("here master!!");
-                  jsonDataMaster.push(jsonObject);                     
-                  UIDS.push(jsonObject["uid"]);
-                  //setContacts(jsonDataMaster);
-                }
-                else if(box=="Slave"){
-                 // console.log("here slave!!");
-                  jsonDataSlave.push(jsonObject); 
-                 // console.log(jsonDataSlave[0].uid);                                  
-                }
-                                 
-            }
-            if(box=="Master"){
-              setUIDS(UIDS);
-            }
-            console.log(uids);    
-            console.log(jsonDataMaster[0].uid);
-            
-            console.log(contacts);
-            
-                    
-        },
-        (error) => {
-         // var status = error.response.status
-        }
-      );
-  }
-
-  const getXMLS = () => {    
+  function getXMLS (){    
     //jsonDataMaster = [];
     let promises = [];
-
+   
     for(let j=0;j<envs.length;j++){
         //console.log(envs[j]);
-        let counter=0;
-        promises.push(
-        axios.get(
-          "https://raw.githubusercontent.com/nice-cxone/"+envs[j]+"/master/toggles.xml",
-          {headers: {
-                  "Access-Control-Allow-Origin" : "*",
-                  "content-type": "text/plain",
-                  "Authorization": "Bearer "+bearerToken,//+accessToken
-                  "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT"
-                  }   
-          }
-        ))
+        //let counter=0;
+        fetch("http://localhost:4000/getXmlData?envs=dev-feature-toggles",{
+          method: "GET",
+        }).then((response) => {           
+            return response.json()     
+        }).then((data) => {           
+          console.log(data);            
+        })
+
+        /*promises.push(
+            axios.get(
+              "https://raw.githubusercontent.com/nice-cxone/"+envs[j]+"/master/toggles.xml",
+              {headers: {
+                      "Access-Control-Allow-Origin" : "*",
+                      "content-type": "text/plain",
+                      "Authorization": "Bearer "+bearerToken,//+accessToken
+                      "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT"
+                      }   
+              }
+            )
+        )*/
     }
 
     Promise.all(promises).then((response) => {  
@@ -299,11 +247,6 @@ function XmlToXml(props) {
         (error) => {
         // var status = error.response.status
         });
-        
-    
-
-
-
   }
  
 const handleChange = (checkbox,repo,repoRealName) => {  

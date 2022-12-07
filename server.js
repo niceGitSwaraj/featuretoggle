@@ -1,31 +1,40 @@
 var express = require('express')
-var cors = require('cors');
+var cors = require('cors')
+require('dotenv').config()
 const bodyParser = require('body-parser');
 const { response } = require('express');
-
+const axios = require('axios');
 const fetch = (...args) => import ('node-fetch').then(({default: fetch}) => fetch(...args));
+var convert = require('xml-js');
+//const parser = new DOMParser();
 
-const CLIENT_ID = "935f571cf46ad93a75b4"
-const CLIENT_SECRET = "b8529168a351aad84adaebd82ff4da61b635d8e8"
+const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;
+const CLIENT_SECRET = process.env.REACT_APP_CLIENT_SECRET;
+const BEARER_TOKEN = process.env.REACT_APP_BEARER_TOKEN;
 
+console.log(CLIENT_ID);
+console.log(CLIENT_SECRET);
 var app = express();
-
+var xml = require('xml');
 app.use(cors());
 app.use(bodyParser.json());
 
-app.get('/getAccessToken',async function(req,res){
+app.get('/hello',async function(req,res){
+    console.log("hello");
+    res.send("hello");    
+});
 
-    req.query.code;
+app.get('/getAccessToken',async function(req,res){   
+    //console.log(req);
     const params = "?client_id="+CLIENT_ID+"&client_secret="+ CLIENT_SECRET +"&code="+req.query.code;
     await fetch("https://github.com/login/oauth/access_token"+params,{
         method: "POST",
         headers:{
             "Accept": "application/json"
         }
-    }).then((response) => {
+    }).then((response) => {        
         return response.json();
-    }).then((data)=> {
-        console.log(data);
+    }).then((data)=> {        
         res.json(data);
     });
 });
@@ -41,10 +50,64 @@ app.get('/getUserData', async function (req,res){
     }).then((response) => {
         return response.json();
     }).then((data)=>{
-        console.log(data);
+        //console.log(data);
         res.json(data)
     })
 })
+
+app.get('/getBearerToken',function(req,res){   
+ //console.log(BEARER_TOKEN);
+ return res.json(BEARER_TOKEN);
+});
+
+app.get('/getXmlData',async function(req,res){
+   let promises = [];
+   let responseData = [];
+      promises.push(
+        axios.get(
+          "https://raw.githubusercontent.com/nice-cxone/"+req.query.envs+"/master/toggles.xml",
+          {headers: {
+                  "Access-Control-Allow-Origin" : "*",
+                  "content-type": "text/plain",
+                  "Authorization": "Bearer "+BEARER_TOKEN,//+accessToken
+                  "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT"
+                  }   
+          }
+        )
+    )
+     // console.log("umm?");
+     // console.log(data);      
+      Promise.all(promises).then((response) => {  
+        jsonDataMaster = [];//this is very inefficient. try to append new array by checking previous key so reinsertion doesnt happen.
+        //console.log(promises);
+        //console.log(response[0].data);
+        for(let j=0;j<response.length;j++){             
+            //xml = parser.parseFromString(response[j].data, 'text/xml');  
+            //console.log(xml); 
+            //console.log(response[j].data);
+            responseData.push(response[j].data);
+        }
+        //console.log(responseData);
+        return responseData;
+        
+    }).then(data => {
+        let xmlToJsonData = convert.xml2json(data, {
+            compact: true,
+            space: 4
+        });
+        console.log(xmlToJsonData);
+        console.log(req.query.envs);
+        
+        res.set('Content-Type', 'application/json');       
+        res.json(xmlToJsonData);
+       // return data;
+      },
+      (error) => {
+      // var status = error.response.status
+      });
+   
+});
+
 
 app.listen(4000, function(){
     console.log("cors server now running on port 4000");
