@@ -64,7 +64,7 @@ const App = () => {
       //console.log(data);      
     })       
  }
- if(localStorage.getItem("access_token")){
+ if(localStorage.getItem("access_token") && !localStorage.getItem("user")){
       getUserData();
  }
  

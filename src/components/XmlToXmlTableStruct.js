@@ -48,52 +48,49 @@ const XmlToXmlTableStruct = ({ contact,headings }) => {
   let dependenciesMismatch = false;
   let releaseMismatch = false;
   let rowColor;
-  let rowName;
+  let currRowName;
   
  //the extra td is because of the comma at the end....
 
 
- const getColor = (objectName,tableColumn) => {   
+ const getColor = (objectName,tableColumn,rowname) => {   
   //setTableHeadings("Dev"); 
+ /* console.log("objectName[0].trim(): "+objectName[0].trim());
+  console.log("tableColumn.trim(): "+tableColumn.trim());*/
   if(objectName[0].trim() != tableColumn.trim()){ //we only need to compare the first element with the rest of them
-   // setUIDRowColor("red"); 
-   if(realRepoName.length>1){
-     
-      if(targetRow !== rowName){
-        rowColor = "red";
-        rowName = targetRow; 
-        console.log(rowName+" - "+rowColor+" "+realRepoName.length);
-      }      
-    }   
+    if(currRowName != objectName[0].trim()){
+      currRowName = objectName[0].trim();
+      rowColor=true;
+    }
     return "red";
-  }  
-  //uidRowColor = "#0ec74f";
-  //setUIDRowColor("#0ec74f");
-  rowColor = "#0ec74f";
+  }   
+  if(!rowColor){ 
+    rowColor=false;
+  }
   return '';
 };
 
 if(uid.length>0){  
       uidMismatch = uid.map((thisUID)=> {
-        return <><td style={{background : getColor(uid,thisUID)}}>{thisUID}</td></>;          
+        return <><td style={{background : getColor(uid,thisUID,uid)}}>{thisUID}</td></>;          
       })
       descriptionMismatch = description.map((thisDesc)=> {         
-          return <><td style={{background : getColor(description,thisDesc)}}>{thisDesc}</td></>;          
+          return <><td style={{background : getColor(description,thisDesc,uid)}}>{thisDesc}</td></>;          
       })
       offForMismatch = offFor.map((thisoffFor)=> {
-        return <><td style={{background : getColor(offFor,thisoffFor)}}>{thisoffFor}</td></>;          
+        return <><td style={{background : getColor(offFor,thisoffFor,uid)}}>{thisoffFor}</td></>;          
       })
       onForMismatch = onFor.map((thisonFor)=> {
-        return <><td style={{background : getColor(onFor,thisonFor)}}>{thisonFor}</td></>;          
+        return <><td style={{background : getColor(onFor,thisonFor,uid)}}>{thisonFor}</td></>;          
       })
       ownerMismatch = owner.map((thisOwner)=> {
-        return <><td style={{background : getColor(owner,thisOwner)}}>{thisOwner}</td></>;          
+        return <><td style={{background : getColor(owner,thisOwner,uid)}}>{thisOwner}</td></>;          
       })
       dependenciesMismatch = dependencies.map((thisDependencies)=> {
-        return <><td style={{background : getColor(dependencies,thisDependencies)}}>{thisDependencies}</td></>;          
+        return <><td style={{background : getColor(dependencies,thisDependencies,uid)}}>{thisDependencies}</td></>;          
       })
       releaseMismatch = release.map((thisRelease)=> {
-        return <><td style={{background : getColor(release,thisRelease)}}>{thisRelease}</td></>;          
+        return <><td style={{background : getColor(release,thisRelease,uid)}}>{thisRelease}</td></>;          
       })
 }
       
@@ -117,22 +114,20 @@ targetRow = targetRow.includes(',')?targetRow.substring(0, targetRow.indexOf(','
 targetRow = targetRow[0];    
 let targetRowID = "#"+targetRow;
 
-const getRowColor = (objectName,tableColumn) => { 
-  //setTableHeadings("Dev"); 
-   //we only need to compare the first element with the rest of them
-   // setUIDRowColor("red"); 
-   if(realRepoName.length>1){
-      if(objectName !== rowName){
-        rowColor = "red";
-        rowName = objectName; 
-        console.log(rowName+" - "+rowColor+" "+realRepoName.length);
-      }   
-  }
+const getRowColor = () => { 
+      if(rowColor){        
+        console.log("getRowColor: "+rowColor);
+        return "red";
+      }
+      else{
+        console.log("getRowColor: "+rowColor);
+        return "#0ec74f";
+      }
 }
    //console.log(targetRow);
   return (    
     <>
-    <button type="button" class="btn" data-toggle="myCollapse" data-target={targetRowID} onClick={expandRow} style={{background : "#0ec74f" }}>
+    <button type="button" class="btn" data-toggle="myCollapse" data-target={targetRowID} onClick={expandRow} style={{background : getRowColor() }}>
             {targetRow}
     </button>
     <br></br>

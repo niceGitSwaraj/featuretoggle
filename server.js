@@ -2,6 +2,7 @@ var express = require('express')
 var cors = require('cors')
 require('dotenv').config()
 const bodyParser = require('body-parser');
+var libxmljs = require("libxmljs");
 const { response } = require('express');
 const axios = require('axios');
 const fetch = (...args) => import ('node-fetch').then(({default: fetch}) => fetch(...args));
@@ -15,7 +16,6 @@ const BEARER_TOKEN = process.env.REACT_APP_BEARER_TOKEN;
 console.log(CLIENT_ID);
 console.log(CLIENT_SECRET);
 var app = express();
-var xml = require('xml');
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -61,45 +61,60 @@ app.get('/getBearerToken',function(req,res){
 });
 
 app.get('/getXmlData',async function(req,res){
+  // let params = req.query.envs.split(",");
+   console.log(req.query.envs);
    let promises = [];
    let responseData = [];
-      promises.push(
-        axios.get(
-          "https://raw.githubusercontent.com/nice-cxone/"+req.query.envs+"/master/toggles.xml",
-          {headers: {
-                  "Access-Control-Allow-Origin" : "*",
-                  "content-type": "text/plain",
-                  "Authorization": "Bearer "+BEARER_TOKEN,//+accessToken
-                  "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT"
-                  }   
-          }
-        )
-    )
+  // for(var i=0;i<params.length;i++){
+     //   console.log("--->"+params[i]);
+            promises.push(
+                axios.get(
+                "https://raw.githubusercontent.com/nice-cxone/"+req.query.envs+"/master/toggles.xml",
+                {
+                    headers: {
+                        "Access-Control-Allow-Origin" : "*",
+                        "content-type": "text/plain",
+                        "Authorization": "Bearer "+BEARER_TOKEN,//+accessToken
+                        "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE, PUT"
+                        }   
+                }
+                )
+            )
+   // }
      // console.log("umm?");
      // console.log(data);      
       Promise.all(promises).then((response) => {  
         jsonDataMaster = [];//this is very inefficient. try to append new array by checking previous key so reinsertion doesnt happen.
-        //console.log(promises);
-        //console.log(response[0].data);
         for(let j=0;j<response.length;j++){             
             //xml = parser.parseFromString(response[j].data, 'text/xml');  
             //console.log(xml); 
             //console.log(response[j].data);
+           // console.log("-------------------------");
             responseData.push(response[j].data);
         }
-        //console.log(responseData);
+        
+        //console.log(responseData.length);
         return responseData;
         
     }).then(data => {
-        let xmlToJsonData = convert.xml2json(data, {
-            compact: true,
-            space: 4
-        });
-        console.log(xmlToJsonData);
-        console.log(req.query.envs);
+        //console.log(data.length);
+       // console.log("done");
+        let xmlToJsonData=[];
+        for(xml of data){
+          //  console.log(xml);
+            xmlToJsonData.push(convert.xml2json(xml, {
+                compact: true,
+                space: 4
+            }))
+        }
+        //console.log(xmlToJsonData);
+      //  console.log(req.query.envs);*/
         
-        res.set('Content-Type', 'application/json');       
+        //res.set('Content-Type', 'application/json');       
         res.json(xmlToJsonData);
+        //promises = [];
+        //responseData = [];
+
        // return data;
       },
       (error) => {

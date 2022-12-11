@@ -1,7 +1,6 @@
 import React from "react";
 
-const CLIENT_ID = "935f571cf46ad93a75b4"
-
+const CLIENT_ID = process.env.REACT_APP_CLIENT_ID;//this might have been revoked.....
 function loginWithGitHub(){    
     return window.location.assign("https://github.com/login/oauth/authorize?client_id="+CLIENT_ID);
 }
