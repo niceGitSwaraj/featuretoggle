@@ -1,4 +1,4 @@
-import React, { useState, Fragment, useEffect } from "react";
+import React, { Fragment, useEffect } from "react";
 import axios from 'axios';
 import ReadOnlyRow from "./XmlToXmlTableStruct";
 import XmlToXmlTableStruct from "./XmlToXmlTableStruct";
@@ -7,6 +7,7 @@ import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 import ReactDOM from 'react-dom';
+import useState from 'react-usestateref';
 //import "../App.css";
 
 let jsonDataMaster = [];
@@ -30,27 +31,27 @@ function XmlToXml(props) {
     console.log(localStorage.getItem("user"));
     window.location.assign("http://localhost:3000/Login")
   }
-  const [regionOne, setRegionOne] = useState("https://raw.githubusercontent.com/nice-cxone/dev-feature-toggles/master/toggles.xml");
-  const [regionTwo, setRegionTwo] = useState("https://raw.githubusercontent.com/nice-cxone/dev-feature-toggles/master/toggles.xml");
-  const [uids, setUIDS] = useState([]);
-  const [selectedUID, setSelectedUID] = useState([]);
+  //const [regionOne, setRegionOne] = useState("https://raw.githubusercontent.com/nice-cxone/dev-feature-toggles/master/toggles.xml");
+ // const [regionTwo, setRegionTwo] = useState("https://raw.githubusercontent.com/nice-cxone/dev-feature-toggles/master/toggles.xml");
+ // const [uids, setUIDS] = useState([]);
+  //const [selectedUID, setSelectedUID] = useState([]);
   const [contacts, setContacts] = useState([]);
-  const [regionNameOne, setRegionOneName] = useState("DEV");
-  const [regionNameTwo, setRegionTwoName] = useState("DEV");
-  const [historicalFilesNames, sethistoricalFileNames] = useState([]);
-  const [selectedRelease, setSelectedRelese] = useState([]);  
+ // const [regionNameOne, setRegionOneName] = useState("DEV");
+  //const [regionNameTwo, setRegionTwoName] = useState("DEV");
+ // const [historicalFilesNames, sethistoricalFileNames] = useState([]);
+  //const [selectedRelease, setSelectedRelese] = useState([]);  
   //const [historicalReleaseFiles, sethistoricalReleaseFiles] = useState([]);  
-  const [historicalReleaseNumbers, setHistoricalReleaseNumbers] = useState([]);
-  const [masterDataArray, setMasterData] = useState([]);
-  const [bearerTokenServer,setBearerToken] = useState("");
-  var UIDS = [];
+ // const [historicalReleaseNumbers, setHistoricalReleaseNumbers] = useState([]);
+  const [masterDataArray, setMasterData,masterDataRef] = useState([]);
+ // const [bearerTokenServer,setBearerToken] = useState("");
+  //var UIDS = [];
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);
-  let accessToken = urlParams.get("code");
-
+ // let accessToken = urlParams.get("code");
+ let dataArr = [];
 
  
-
+  
   useEffect(() => {
    // function getBearerTokenFromServer(){     
       fetch("http://localhost:4000/getBearerToken",{
@@ -62,15 +63,16 @@ function XmlToXml(props) {
        return data;     
      })    
   // }
-  
-    displayTables()
-  },[masterDataArray]);
+    //setMasterData(masterDataRef.current); 
+    
+    //displayTables()
+  },[masterDataRef.current]);
 
   
   
   
   
-  async function getHistoricalReleases(commitHash,repo) {    
+  /*async function getHistoricalReleases(commitHash,repo) {    
     let temp = [];
     releasesCounter=0;
     console.log("called!!!");
@@ -112,9 +114,9 @@ function XmlToXml(props) {
         });
          
   } 
-  }
+  }*/
 
-  const getHistoricalHashes = (box) => {    
+  /*const getHistoricalHashes = (box) => {    
       
       let repo="";
       if(box=="Master"){
@@ -149,24 +151,73 @@ function XmlToXml(props) {
         }
       );
   }
-
+*/
   //getHistoricalHashes("Master");
-  function getXMLS (){    
-    //jsonDataMaster = [];
-    let promises = [];
-   
-    for(let j=0;j<envs.length;j++){
-        //console.log(envs[j]);
-        //let counter=0;
-        fetch("http://localhost:4000/getXmlData?envs=dev-feature-toggles",{
-          method: "GET",
-        }).then((response) => {           
-            return response.json()     
-        }).then((data) => {           
-          console.log(data);            
-        })
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-        /*promises.push(
+  async function getXMLS (){    
+    let masterJson = [];
+    let promises = [];
+    let params="";
+
+    for(var x=0;x<envs.length;x++){
+    //   console.log(envs[x]);
+        params += envs[x]+",";
+    }
+    params = params.slice(0, -1);
+    //console.log(params);
+    for(let j=0;j<envs.length;j++){
+        console.log(envs[j]);
+        //let counter=0;
+        let jsonObject = {};
+        await fetch("http://localhost:4000/getXmlData?envs="+envs[j],{
+          method: "GET",
+        }).then((response) => {                  
+            return response.json()     
+        }).then((data) => {         
+         // console.log(data);
+          for(var x=0;x<data.length;x++){                 
+                  let jsonDataIndex = JSON.parse(data[x])                    
+                  console.log(jsonDataIndex);       
+                  for(let i=0;i<jsonDataIndex.features.feature.length;i++){
+                        var uid = jsonDataIndex.features.feature[i].hasOwnProperty("_attributes")?jsonDataIndex.features.feature[i]._attributes.uid:"Not Available";
+                        var description = jsonDataIndex.features.feature[i].hasOwnProperty("_attributes")?jsonDataIndex.features.feature[i]._attributes.description:"Not Available";
+                        var owner = jsonDataIndex.features.feature[i].hasOwnProperty("documentation")?jsonDataIndex.features.feature[i].documentation.owner._text:"Not Available";
+                        var offFor = jsonDataIndex.features.feature[i].hasOwnProperty("flipstrategy")?jsonDataIndex.features.feature[i].flipstrategy.param[0]._attributes.value:"Not Available";
+                        var onFor = jsonDataIndex.features.feature[i].hasOwnProperty("flipstrategy")?jsonDataIndex.features.feature[i].flipstrategy.param[1]._attributes.value:"Not Available";
+                        var dependencies = jsonDataIndex.features.feature[i].hasOwnProperty("documentation")?jsonDataIndex.features.feature[0].documentation.dependencies._text:"Not Available";
+                        var release = jsonDataIndex.features.feature[i].hasOwnProperty("documentation")?jsonDataIndex.features.feature[0].documentation.release._text:"Not Available";
+                       
+                        var temp = {
+                          "uid" : uid,
+                          "description" : description,
+                          "owner" : owner,
+                          "offFor" : offFor,
+                          "onFor" : onFor,
+                          "dependencies" : dependencies,
+                          "release" : release,
+                        };
+                       // console.log(jsonDataIndex.features.feature[i])
+                        jsonObject[jsonDataIndex.features.feature[i]._attributes.uid] = temp;
+                       // console.log(jsonObject);               
+                }
+          }         
+          masterJson.push({'key':envs[j], 'val':jsonObject});
+         
+          return masterJson;
+        }).then(data => {
+          //console.log(data);         
+          setMasterData(data);         
+          //console.log(masterDataRef.current);  
+          displayTables()         
+        },
+        (error) => {
+        // var status = error.response.status
+        });
+
+       /* promises.push(
             axios.get(
               "https://raw.githubusercontent.com/nice-cxone/"+envs[j]+"/master/toggles.xml",
               {headers: {
@@ -178,9 +229,10 @@ function XmlToXml(props) {
               }
             )
         )*/
+        //await sleep(j * 1000);
     }
 
-    Promise.all(promises).then((response) => {  
+   /* Promise.all(promises).then((response) => {  
           jsonDataMaster = [];//this is very inefficient. try to append new array by checking previous key so reinsertion doesnt happen.
           //console.log(promises);
           //console.log(response[0].data);
@@ -238,7 +290,7 @@ function XmlToXml(props) {
               return jsonDataMaster;                
           }
         ).then(data => {
-          setMasterData(data);
+         // setMasterData(data);
           console.log(data); 
           //console.log(masterDataArray);
           //displayTables();
@@ -246,7 +298,7 @@ function XmlToXml(props) {
         },
         (error) => {
         // var status = error.response.status
-        });
+        });*/
   }
  
 const handleChange = (checkbox,repo,repoRealName) => {  
@@ -263,103 +315,13 @@ const handleChange = (checkbox,repo,repoRealName) => {
     //const myTimeout = setTimeout(myGreeting, 5000);
 }
 
- const displayTableData = (chosenFeature,compareAll) => {
-  var comparison = [];
-  var indexOfMasterUID = 0;
-  var indexOfSlaveUID = 0;
-
-  if(compareAll){
-      console.log(chosenFeature);
-      for(var j=0;j<chosenFeature.length;j++){
-        console.log(jsonDataMaster.length);
-        for(var i=0;i<jsonDataMaster.length;i++){
-          //console.log(jsonDataMaster[i].uid);
-          //console.log(chosenFeature);
-          if(jsonDataMaster[i].uid==chosenFeature[j]){
-            indexOfMasterUID = i;
-            break;
-          }
-        }
-       // console.log("indexOfMasterUID: "+indexOfMasterUID);
-
-        for(var i=0;i<jsonDataSlave.length;i++){
-          //console.log(jsonDataSlave[i].uid);
-          //console.log(chosenFeature);
-          if(jsonDataSlave[i].uid==chosenFeature[j]){
-            indexOfSlaveUID = i;
-            break;
-          }
-        }
-        /*console.log("indexOfSlaveUID: "+indexOfSlaveUID);
-        console.log(jsonDataMaster[indexOfMasterUID]);
-        console.log(jsonDataSlave[indexOfSlaveUID]);*/
-        jsonDataMaster[indexOfMasterUID].uid += ","+jsonDataSlave[indexOfSlaveUID].uid;
-        jsonDataMaster[indexOfMasterUID].description += ","+jsonDataSlave[indexOfSlaveUID].description;
-        jsonDataMaster[indexOfMasterUID].dependencies += ","+jsonDataSlave[indexOfSlaveUID].dependencies;
-        jsonDataMaster[indexOfMasterUID].offFor += ","+jsonDataSlave[indexOfSlaveUID].offFor;
-        jsonDataMaster[indexOfMasterUID].onFor += ","+jsonDataSlave[indexOfSlaveUID].onFor;
-        jsonDataMaster[indexOfMasterUID].owner += ","+jsonDataSlave[indexOfSlaveUID].owner;
-        jsonDataMaster[indexOfMasterUID].release += ","+jsonDataSlave[indexOfSlaveUID].release;
-        console.log(jsonDataMaster[indexOfMasterUID]);
-
-        comparison.push(jsonDataMaster[indexOfMasterUID]);
-        //comparison.push(jsonDataSlave[indexOfSlaveUID]);
-        indexOfMasterUID = 0;
-        indexOfSlaveUID = 0;
-
-        console.log(comparison);
-        setContacts(comparison);
-      }
-  }
-  else{
-  //setContacts(jsonDataSlave);
-  
-  //comparison.push()
-  
-  console.log(jsonDataMaster.length);
-  for(var i=0;i<jsonDataMaster.length;i++){
-    console.log(jsonDataMaster[i].uid);
-    console.log(chosenFeature);
-    if(jsonDataMaster[i].uid==chosenFeature){
-      indexOfMasterUID = i;
-      break;
-    }
-  }
-  console.log("indexOfMasterUID: "+indexOfMasterUID);
-
-  for(var i=0;i<jsonDataSlave.length;i++){
-    //console.log(jsonDataSlave[i].uid);
-    //console.log(chosenFeature);
-    if(jsonDataSlave[i].uid==chosenFeature){
-      indexOfSlaveUID = i;
-      break;
-    }
-  }
-  console.log("indexOfSlaveUID: "+indexOfSlaveUID);
-  console.log(jsonDataMaster[indexOfMasterUID]);
-  console.log(jsonDataSlave[indexOfSlaveUID]);
-  jsonDataMaster[indexOfMasterUID].uid += ","+jsonDataSlave[indexOfSlaveUID].uid;
-  jsonDataMaster[indexOfMasterUID].description += ","+jsonDataSlave[indexOfSlaveUID].description;
-  jsonDataMaster[indexOfMasterUID].dependencies += ","+jsonDataSlave[indexOfSlaveUID].dependencies;
-  jsonDataMaster[indexOfMasterUID].offFor += ","+jsonDataSlave[indexOfSlaveUID].offFor;
-  jsonDataMaster[indexOfMasterUID].onFor += ","+jsonDataSlave[indexOfSlaveUID].onFor;
-  jsonDataMaster[indexOfMasterUID].owner += ","+jsonDataSlave[indexOfSlaveUID].owner;
-  jsonDataMaster[indexOfMasterUID].release += ","+jsonDataSlave[indexOfSlaveUID].release;
-  console.log(jsonDataMaster[indexOfMasterUID]);
-
-  comparison.push(jsonDataMaster[indexOfMasterUID]);
-  //comparison.push(jsonDataSlave[indexOfSlaveUID]);
-  console.log(comparison);
-  setContacts(comparison);
-  }
- }
-
+ 
 
  const displayTables = () => {
      console.log("Entered DisplayTables funcion");
     //setMasterData(jsonDataMaster);
     //masterDataArray.sort((a,b)=> (a.val.uid > b.val.uid ? 1 : -1));
-    console.log(masterDataArray); 
+    //console.log(masterDataArray); 
     /*
     of the arrays chosen, from the index, choose the largest object 
     start iterating from the 1st array. get data from the same indexes from other arrays.
@@ -372,40 +334,40 @@ const handleChange = (checkbox,repo,repoRealName) => {
     let foundItems = [];
     let notFoundItems = [];
   
-
-    for(let i=0;i<masterDataArray.length;i++){
-        console.log(Object.keys(masterDataArray[i].val).length);
+    console.log(masterDataRef.current);
+    for(let i=0;i<masterDataRef.current.length;i++){
+        console.log(Object.keys(masterDataRef.current[i].val).length);
     }  
     ;
-    if(masterDataArray.length>0){ //make sure this has some data before attempting to render.....
+    if(masterDataRef.current.length>0){ //make sure this has some data before attempting to render.....
      // let counter = 0;//masterDataArray.length;
-      console.log(masterDataArray[0].val);
+      //console.log(masterDataArray[0].val);
        //for(let i=0;i<Object.keys(masterDataArray[0].val).length;i++){
-            for(var items in masterDataArray[0].val){ //getting UID's which are stored as keys
+            for(var items in masterDataRef.current[0].val){ //getting UID's which are stored as keys
                 //console.log(masterDataArray[0].val[items]);
              // if(masterDataArray.length>=0){
                 //console.log(masterDataArray[1].val);
                 //let foundItemsObject = {};
                 //storing the first envs data
-                let uid = masterDataArray[0].val[items].uid+",";
-                let description = masterDataArray[0].val[items].description+",";
-                let dependencies = masterDataArray[0].val[items].dependencies+",";
-                let offFor = masterDataArray[0].val[items].offFor+",";
-                let onFor = masterDataArray[0].val[items].onFor+",";
-                let owner = masterDataArray[0].val[items].owner+",";
-                let release = masterDataArray[0].val[items].release+",";
+                let uid = masterDataRef.current[0].val[items].uid+",";
+                let description = masterDataRef.current[0].val[items].description+",";
+                let dependencies = masterDataRef.current[0].val[items].dependencies+",";
+                let offFor = masterDataRef.current[0].val[items].offFor+",";
+                let onFor = masterDataRef.current[0].val[items].onFor+",";
+                let owner = masterDataRef.current[0].val[items].owner+",";
+                let release = masterDataRef.current[0].val[items].release+",";
 
-                if(masterDataArray.length>1){
-                  for(var i=1;i<masterDataArray.length;i++){      //continuing to append next envs data              
-                    if(masterDataArray[i].val[items]){
+                if(masterDataRef.current.length>1){
+                  for(var i=1;i<masterDataRef.current.length;i++){      //continuing to append next envs data              
+                    if(masterDataRef.current[i].val[items]){
                      // console.log("item found: "+ items);
-                      uid +=  masterDataArray[i].val[items].uid+",";
-                      description +=  masterDataArray[i].val[items].description+",";
-                      dependencies +=  masterDataArray[i].val[items].dependencies+",";
-                      offFor +=  masterDataArray[i].val[items].offFor+",";
-                      onFor +=  masterDataArray[i].val[items].onFor+",";
-                      owner +=  masterDataArray[i].val[items].owner+",";
-                      release +=  masterDataArray[i].val[items].release+",";                      
+                      uid +=  masterDataRef.current[i].val[items].uid+",";
+                      description +=  masterDataRef.current[i].val[items].description+",";
+                      dependencies +=  masterDataRef.current[i].val[items].dependencies+",";
+                      offFor +=  masterDataRef.current[i].val[items].offFor+",";
+                      onFor +=  masterDataRef.current[i].val[items].onFor+",";
+                      owner +=  masterDataRef.current[i].val[items].owner+",";
+                      release +=  masterDataRef.current[i].val[items].release+",";                      
                     }
                     else{
                       uid +=  "not avialable,";
@@ -458,7 +420,7 @@ const handleChange = (checkbox,repo,repoRealName) => {
             
           <div>
         
-          <label>Compare All</label><input type="checkbox" id="compareAll" name="compareAll" onChange={() => {displayTableData(uids,true);}}/>
+         
           <label>DEV </label><input type="checkbox" id="devCheckbox" name="devCheckbox" onChange={(event) => {handleChange(event.target.checked,"dev-feature-toggles","DEV")}}/>
           <label>Perf </label><input type="checkbox" id="perfCheckbox" name="perfCheckbox" onChange={(event) => {handleChange(event.target.checked,"perf-feature-toggles","Perf")}}/>
           <label>Production NA1 </label><input type="checkbox" id="prodNA1Checkbox" name="prodNA1Checkbox" onChange={(event) => {handleChange(event.target.checked,"prod-na1-feature-toggles","Production NA1")}}/>
